@@ -1,10 +1,10 @@
 //! DataFrame bulk data read/write from file or STDIN.
 
 // dependencies
-use std::io::{Read, BufReader, Write, BufWriter};
+use std::io::{Read, Write};
 use csv::{StringRecord, ReaderBuilder, WriterBuilder, Trim};
 use rayon::prelude::*;
-use crate::data_frame::DataFrame;
+use crate::data_frame::{DataFrame, Column};
 use crate::throw;
 
 // constants
@@ -19,7 +19,7 @@ impl DataFrame {
     /// (CSV) input file or stream.
     pub fn read<R: Read>(
         &mut self, 
-        reader:   BufReader<R>, 
+        reader:   R, 
         header:   bool,
         sep:      u8,
         capacity: usize
@@ -74,10 +74,10 @@ impl DataFrame {
         self.n_row += records.len();
     }
 
-    /// Write a DataFrame to a buffered writer as a row-major (CSV) output file or stream.
+    /// Write a DataFrame to a row-major (CSV) output file or stream.
     pub fn write<W: Write>(
         &self, 
-        writer: BufWriter<W>, 
+        writer: &mut W, 
         header: bool,
         sep:    u8
     ) {
@@ -92,12 +92,17 @@ impl DataFrame {
             wtr.write_record(&headers).unwrap_or_else(|e| throw!("DataFrame::write error writing header: {}", e));
         }
 
+        // buffer columns and row for writing
+        let cols: Vec<&Column> = self.col_names.iter() 
+            .map(|name| self.columns.get(name).unwrap())
+            .collect();
+        let mut row = vec![String::new(); cols.len()];
+
         // write rows
         for i in 0..self.n_row {
-            let row: Vec<String> = self.col_names.iter().map(|col_name| {
-                let col = self.columns.get(col_name).unwrap();
-                col.cell_string(i)
-            }).collect();
+            for (j, col) in cols.iter().enumerate() {
+                row[j] = col.cell_string(i); 
+            }
             wtr.write_record(&row).unwrap_or_else(|e| throw!("DataFrame::write error writing row {}: {}", i, e));
         }
         wtr.flush().unwrap_or_else(|e| throw!("DataFrame::write error flushing output: {}", e));
@@ -110,7 +115,7 @@ impl DataFrame {
     /// A caller-provided magic key is used to identify the DataFrame type in the file.
     pub fn load<R: Read>(
         &mut self, 
-        _reader:   BufReader<R>, 
+        _reader:    R, 
         _magic_key: &str,
     ) -> &mut Self {
         self
@@ -119,7 +124,7 @@ impl DataFrame {
     /// A caller-provided magic key is used to identify the DataFrame type in the file.
     pub fn save<W: Write>(
         &self, 
-        mut writer: BufWriter<W>, 
+        writer:    &mut W, 
         magic_key: &str,
     ) {
         writer.write(DF_MAGIC_KEY).unwrap_or_else(|e| throw!(
@@ -136,7 +141,5 @@ impl DataFrame {
         writer.write(&self.n_col.to_le_bytes()).unwrap_or_else(|e| throw!(
             "DataFrame::save error writing n_col: {}", e)
         );
-
     }
-
 }

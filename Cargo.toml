@@ -5,7 +5,9 @@ edition = "2024"
 authors = ["Thomas E. Wilson"]
 
 [dependencies]
-csv         = "1.4"
-rayon       = "1.11"
-flate2      = "1.1"
-paste       = "1.0"
+csv    = "1.4"
+rayon  = "1.11"
+flate2 = "1.1"
+paste  = "1.0"
+serde  = { version = "1.0", features = ["derive"] }
+serde_with = "3.20"

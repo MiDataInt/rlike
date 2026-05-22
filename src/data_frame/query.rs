@@ -10,6 +10,7 @@ mod pivot;
 
 // dependencies
 use std::marker::PhantomData;
+use serde::{Serialize, Deserialize};
 use rayon::prelude::*;
 use crate::data_frame::DataFrame;
 use crate::data_frame::column::Column;
@@ -41,7 +42,7 @@ Query status metadata, one instance per DataFrame instance; holds the current
 sort and group state, i.e., the result of previous query operation(s).
 ----------------------------------------------------------------------------- */
 /// QueryStatus is a metadata record of the current sort and group state of a DataFrame instance.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct QueryStatus {
     // row sorting
     pub sort_cols:          Vec<String>,

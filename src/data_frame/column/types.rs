@@ -1,6 +1,7 @@
 //! Implement special column data types: RFactor, RTime
 
 // dependencies
+use serde::{Serialize, Deserialize};
 use std::collections::HashMap;
 use super::Column;
 use crate::throw;
@@ -11,7 +12,7 @@ Special column data types: RFactor
 /// `RFactorColumn` defines the RFactor column type and methods for handling 
 /// factor data. New instances can be populated with a vector of pre-defined 
 /// factor labels, or with auto-labeling enabled.
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct RFactorColumn {
     pub levels:      HashMap<String, u16>,
     pub labels:      Vec<String>,

@@ -22,6 +22,12 @@ macro export always happens in the crate root, so we re-export them here
 // from new.rs
 pub use crate::df_new;
 /*-------------------------------------------------------------------- */
+// from io.rs
+pub use crate::df_read;
+pub use crate::df_write;
+pub use crate::df_load;
+pub use crate::df_save;
+/*-------------------------------------------------------------------- */
 // from get.rs
 pub use crate::df_get;
 /*-------------------------------------------------------------------- */

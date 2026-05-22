@@ -12,6 +12,7 @@ pub mod get;
 mod query;
 
 // dependencies
+use serde::{Serialize, Deserialize};
 use rayon::prelude::*;
 pub use types::RFactorColumn;
 use crate::data_frame::{DataFrame, DataFrameSlice};
@@ -22,7 +23,7 @@ use crate::throw;
 Column data type enumeration, i.e., all row values for a column as Vec<Option<T>> or custom type
 ----------------------------------------------------------------------------- */
 /// The `Column` enum defines the column type enumeration and methods for matching types.
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub enum Column {
     RInteger(Vec<Option<i32>>),
     RNumeric(Vec<Option<f64>>),

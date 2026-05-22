@@ -72,6 +72,7 @@ pub mod io;
 
 // dependencies
 use std::collections::HashMap;
+use serde::{Serialize, Deserialize};
 use rayon::prelude::*;
 use crate::types::Do;
 use column::{Column, get::{ColVec, ColCell}};
@@ -85,6 +86,7 @@ use crate::throw;
 DataFrame structure definition; metadata and a set of named Column instances.
 ----------------------------------------------------------------------------- */
 /// A DataFrame is a columnar data structure stored as a HashMap of named Columns.
+#[derive(Serialize, Deserialize)]
 pub struct DataFrame {
     n_row:         usize,
     n_col:         usize,

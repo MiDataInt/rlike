@@ -4,6 +4,8 @@
 
 // dependencies
 use std::collections::HashMap;
+use serde::{Serialize, Deserialize};
+use serde_with::{serde_as, Bytes};
 use rayon::prelude::*;
 use super::{Column, DataFrame, DataFrameSlice, DataFrameTrait, Query};
 use crate::data_frame::key::{RowKey2, RowKey4, RowKey8};
@@ -48,6 +50,7 @@ macro_rules! set_grp_map_n {
 RowIndexType enum definition
 ----------------------------------------------------------------------------- */
 /// Enum to declare the type of a RowIndex, i.e., how it is stored and used.
+#[derive(Clone,Serialize, Deserialize)]
 pub enum RowIndexType {
     None,
     Sorted,
@@ -58,6 +61,8 @@ pub enum RowIndexType {
 RowIndex structure definition
 ----------------------------------------------------------------------------- */
 /// A RowIndex stores information on the current indexing state of a DataFrame.
+#[serde_as]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct RowIndex {
     // the names of the columns used to create the current index
     pub key_cols:   Vec<String>, 
@@ -65,15 +70,23 @@ pub struct RowIndex {
     pub index_type: RowIndexType,
     // ordered, unique row keys at different key levels
     // searched by binary search when the DataFrame is known to be both sorted and aggregated by key_cols
+    #[serde_as(as = "Vec<Bytes>")]
     pub grp_keys_1: Vec<[u8; 9]>,
+    #[serde_as(as = "Vec<Bytes>")]
     pub grp_keys_2: Vec<[u8; 18]>,
+    #[serde_as(as = "Vec<Bytes>")]
     pub grp_keys_4: Vec<[u8; 36]>,
+    #[serde_as(as = "Vec<Bytes>")]
     pub grp_keys_8: Vec<[u8; 72]>,
     // the mapping of grouping keys at different key levels to contiguous row indices
     // used for hashed lookups when the DataFrame is not sorted or when multiple rows may match a key_col
+    #[serde_as(as = "HashMap<Bytes, _>")]
     pub grp_map_1:  HashMap<[u8; 9],  (usize, usize)>,
+    #[serde_as(as = "HashMap<Bytes, _>")]
     pub grp_map_2:  HashMap<[u8; 18], (usize, usize)>,
+    #[serde_as(as = "HashMap<Bytes, _>")]
     pub grp_map_4:  HashMap<[u8; 36], (usize, usize)>,
+    #[serde_as(as = "HashMap<Bytes, _>")]
     pub grp_map_8:  HashMap<[u8; 72], (usize, usize)>,
 }
 impl RowIndex {
