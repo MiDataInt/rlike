@@ -8,7 +8,6 @@
 use std::mem::{transmute, transmute_copy};
 use std::collections::HashMap;
 use super::{Column, RFactorColumn};
-use crate::throw;
 pub const STRING: &str = "alloc::string::String";
 
 /* -----------------------------------------------------------------------------
@@ -16,7 +15,7 @@ error handling
 ----------------------------------------------------------------------------- */
 macro_rules! col_type_mismatch {
     ($col_name:expr, $col_type:expr, $caller:expr) => {
-        throw!("DataFrame::{} error: column {} is not of type {}.", $caller, $col_name, $col_type)
+        panic!("DataFrame::{} error: column {} is not of type {}.", $caller, $col_name, $col_type)
     };
 }
 
@@ -168,7 +167,7 @@ impl ColCell for Option<u16> {
 impl ColCell for Option<String> {
     fn cell<T: 'static>(_: &Column, _: &str, _: usize) -> Option<T> {
         // transmute leads to double free error by all methods tried
-        throw!("DataFrame error: cell() method not supported for RString columns, use cell_string().")
+        panic!("DataFrame error: cell() method not supported for RString columns, use cell_string().")
     }
     fn set<T: 'static + Clone>(col: &mut Column, col_name: &str, row_i: usize, val: Option<T>) {
         match col {

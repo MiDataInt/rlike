@@ -9,7 +9,6 @@ use serde_with::{serde_as, Bytes};
 use rayon::prelude::*;
 use super::{Column, DataFrame, DataFrameSlice, DataFrameTrait, Query};
 use crate::data_frame::key::{RowKey2, RowKey4, RowKey8};
-use crate::throw;
 
 /* -----------------------------------------------------------------------------
 row key macros
@@ -155,12 +154,12 @@ impl RowIndex {
         // check the name and number of requested key columns
         for key_col in &key_cols {
             if !df.col_names.contains(key_col) {
-                throw!("DataFrame::set_index error: column {} not found in DataFrame.", key_col);
+                panic!("DataFrame::set_index error: column {} not found in DataFrame.", key_col);
             }
         }
         let n_key_cols = key_cols.len();
         if n_key_cols > 8 {
-            throw!("DataFrame::set_index error: too many key columns, up to eight columns are supported.");
+            panic!("DataFrame::set_index error: too many key columns, up to eight columns are supported.");
         }
 
         // determine the current status of the DataFrame
@@ -225,11 +224,11 @@ impl RowIndex {
         let key_cols = df.row_index.key_cols.clone();
         let n_key_cols = key_cols.len();
         if let RowIndexType::None = df.row_index.index_type {
-            throw!("DataFrame::get_indexed error: DataFrame must be indexed using df_index!() prior to indexed retrieval.");
+            panic!("DataFrame::get_indexed error: DataFrame must be indexed using df_index!() prior to indexed retrieval.");
         }
         for col_name in &key_cols {
             if !dk.col_names().contains(col_name) {
-                throw!("DataFrame::get_indexed error: key column {} not found in query DataFrame[Slice].", col_name);
+                panic!("DataFrame::get_indexed error: key column {} not found in query DataFrame[Slice].", col_name);
             }
         }
              if n_key_cols == 1 { Self::set_grp_keys_1(&mut dk, key_cols) }
@@ -250,7 +249,7 @@ impl RowIndex {
                 else if n_key_cols <= 4 { df.row_index.grp_map_4.get(&dk.row_index.grp_keys_4[0]) }
                                    else { df.row_index.grp_map_8.get(&dk.row_index.grp_keys_8[0]) }
             },
-            _ => throw!("DataFrame::get_indexed internal error.")
+            _ => panic!("DataFrame::get_indexed internal error.")
         };
         if let Some((start_row_i, n_row)) = df_rows {
             DataFrameSlice::new(df, *start_row_i, *n_row) // return a pointer to the matching df rows

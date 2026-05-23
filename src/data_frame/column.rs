@@ -17,7 +17,6 @@ use rayon::prelude::*;
 pub use types::RFactorColumn;
 use crate::data_frame::{DataFrame, DataFrameSlice};
 use crate::data_frame::query::Query;
-use crate::throw;
 
 /* -----------------------------------------------------------------------------
 Column data type enumeration, i.e., all row values for a column as Vec<Option<T>> or custom type
@@ -80,14 +79,14 @@ impl Column {
                 Column::RString(other_data)
             ) => data.par_extend(other_data.par_iter().cloned()),
             _ => {
-                throw!("DataFrame::extend error: type mismatch between columns.")
+                panic!("DataFrame::extend error: type mismatch between columns.")
             }
         }
     }
     /// Extend a column by recycling its existing single Option<T> value, or None if currently empty.
     pub fn recycle(&mut self, n_row_in: usize, new_len: usize) {
         if n_row_in > 1 {
-            throw!("DataFrame::extend error: cannot recycle a column with more than one row.");
+            panic!("DataFrame::extend error: cannot recycle a column with more than one row.");
         }
         let is_na = n_row_in == 0;
         match self { 
@@ -105,25 +104,25 @@ impl Column {
     /// Check that the number of incoming rows matches the number of data rows.
     pub fn check_n_row_equality(nrow_curr: usize, nrow_new: usize, caller: &str) {
         if nrow_curr != nrow_new {
-            throw!("DataFrame::{caller} row count mismatch: {nrow_curr} (df) != {nrow_new} (new)");
+            panic!("DataFrame::{caller} row count mismatch: {nrow_curr} (df) != {nrow_new} (new)");
         }
     }
     /// Ensure uniqueness of incoming column names.
     pub fn check_col_name_collision(df: &DataFrame, col_name: &str, caller: &str) {
         if df.columns.contains_key(col_name) {
-            throw!("DataFrame::{caller} error: incoming column {col_name} already exists in data.")
+            panic!("DataFrame::{caller} error: incoming column {col_name} already exists in data.")
         }
     }
     /// Ensure that the column names match exactly between two DataFrames.
     pub fn check_col_names_match(col_names_curr:  &Vec<String>, col_names_other: &Vec<String>, caller: &str) {
         if col_names_curr != col_names_other {
-            throw!("DataFrame::{caller} error: column names do not match: {col_names_curr:?} != {col_names_other:?}");
+            panic!("DataFrame::{caller} error: column names do not match: {col_names_curr:?} != {col_names_other:?}");
         }
     }
     // Ensure that a requested row is within the column row length
     pub fn check_i_bound(n_row: usize, row_i: usize, caller: &str) {
         if row_i >= n_row {
-            throw!("DataFrame::{caller} error: row index {row_i} out of bounds.");
+            panic!("DataFrame::{caller} error: row index {row_i} out of bounds.");
         }
     }
 }

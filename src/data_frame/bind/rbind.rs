@@ -2,7 +2,6 @@
 
 // dependencies
 use super::{DataFrame, Column};
-use crate::throw;
 
 impl DataFrame {
     /* -----------------------------------------------------------------------------
@@ -42,7 +41,7 @@ impl DataFrame {
             .for_each(|(col_name, to_col)| {
                 let from_col = df_src.columns.get(col_name).unwrap();
                 if self.col_types[col_name] != df_src.col_types[col_name] {
-                    throw!("DataFrame::rbind error: column {col_name} data types do not match.");
+                    panic!("DataFrame::rbind error: column {col_name} data types do not match.");
                 }
                 to_col.extend(from_col); // row data is always copied (ownership cannot be transferred)
             });

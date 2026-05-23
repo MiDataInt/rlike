@@ -5,7 +5,6 @@ use std::io::{Read, Write};
 use csv::{StringRecord, ReaderBuilder, WriterBuilder, Trim};
 use rayon::prelude::*;
 use crate::data_frame::{DataFrame, Column};
-use crate::throw;
 
 // constants
 const DF_MAGIC_KEY: &[u8; 8] = b"RLIKEDF1";
@@ -47,7 +46,7 @@ impl DataFrame {
                     }
                 }
                 Ok(false) => break, // End of file
-                Err(e) => throw!("DataFrame::read error: {}", e),
+                Err(e) => panic!("DataFrame::read error: {}", e),
             }
         }
 
@@ -66,7 +65,7 @@ impl DataFrame {
             let str_refs: Vec<&str> = records.iter().map(|record| {
                 match record.get(j) {
                     Some(str_ref) => str_ref,
-                    _ => throw!("DataFrame::read error: column {col_name} not found in input stream.")
+                    _ => panic!("DataFrame::read error: column {col_name} not found in input stream.")
                 }
             }).collect();
             col.deserialize(str_refs);
@@ -89,7 +88,7 @@ impl DataFrame {
         // write header
         if header {
             let headers: Vec<&str> = self.col_names.iter().map(|name| name.as_str()).collect();
-            wtr.write_record(&headers).unwrap_or_else(|e| throw!("DataFrame::write error writing header: {}", e));
+            wtr.write_record(&headers).unwrap_or_else(|e| panic!("DataFrame::write error writing header: {}", e));
         }
 
         // buffer columns and row for writing
@@ -103,9 +102,9 @@ impl DataFrame {
             for (j, col) in cols.iter().enumerate() {
                 row[j] = col.cell_string(i); 
             }
-            wtr.write_record(&row).unwrap_or_else(|e| throw!("DataFrame::write error writing row {}: {}", i, e));
+            wtr.write_record(&row).unwrap_or_else(|e| panic!("DataFrame::write error writing row {}: {}", i, e));
         }
-        wtr.flush().unwrap_or_else(|e| throw!("DataFrame::write error flushing output: {}", e));
+        wtr.flush().unwrap_or_else(|e| panic!("DataFrame::write error flushing output: {}", e));
     }
 
     /* -----------------------------------------------------------------------------
@@ -127,18 +126,18 @@ impl DataFrame {
         writer:    &mut W, 
         magic_key: &str,
     ) {
-        writer.write(DF_MAGIC_KEY).unwrap_or_else(|e| throw!(
+        writer.write(DF_MAGIC_KEY).unwrap_or_else(|e| panic!(
             "DataFrame::save error writing magic key: {}", e)
         );
-        writer.write(magic_key.as_bytes()).unwrap_or_else(|e| throw!(
+        writer.write(magic_key.as_bytes()).unwrap_or_else(|e| panic!(
             "DataFrame::save error writing magic key: {}", e)
         );
         // number of rows as usize
-        writer.write(&self.n_row.to_le_bytes()).unwrap_or_else(|e| throw!(
+        writer.write(&self.n_row.to_le_bytes()).unwrap_or_else(|e| panic!(
             "DataFrame::save error writing n_row: {}", e)
         );
         // number of columns as usize
-        writer.write(&self.n_col.to_le_bytes()).unwrap_or_else(|e| throw!(
+        writer.write(&self.n_col.to_le_bytes()).unwrap_or_else(|e| panic!(
             "DataFrame::save error writing n_col: {}", e)
         );
     }

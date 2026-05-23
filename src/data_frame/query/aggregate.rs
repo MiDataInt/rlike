@@ -7,7 +7,6 @@ use rayon::prelude::*;
 use super::{DataFrame, Query};
 use crate::data_frame::column::{Column, get::ColVec};
 use crate::data_frame::r#trait::DataFrameTrait;
-use crate::throw;
 
 /* -----------------------------------------------------------------------------
 macros for shared grouping query execution
@@ -91,7 +90,7 @@ impl Query<'_> {
                 self.group_cols = self.sort_cols.clone();
                 self.has_been_grouped = true;
             } else {
-                throw!("DataFrame::aggregate error: either sort(col, ...) or group(...) is required.");
+                panic!("DataFrame::aggregate error: either sort(col, ...) or group(...) is required.");
             }
         }
         self.set_aggregate_status_flags(df_src);
@@ -103,7 +102,7 @@ impl Query<'_> {
             let all_cols: Vec<String> = self.group_cols.iter().chain(self.agg_cols.iter()).cloned().collect();
             for col_name in &all_cols {
                 df_src.columns.get(col_name).unwrap_or_else(|| 
-                    throw!("DataFrame::group_by() error: column {col_name} not found.")
+                    panic!("DataFrame::group_by() error: column {col_name} not found.")
                 );
             }
 

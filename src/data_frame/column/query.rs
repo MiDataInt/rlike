@@ -7,19 +7,18 @@ use super::{DataFrame, DataFrameSlice, Column, Query};
 use crate::data_frame::key::{CellKeyValue, CellKey};
 use crate::data_frame::r#trait::DataFrameTrait;
 use crate::data_frame::column::get::ColVec;
-use crate::throw;
 
 /* -----------------------------------------------------------------------------
 error handling
 ----------------------------------------------------------------------------- */
 macro_rules! string_key_error {
     ($col_name:expr, $caller:expr) => {
-        throw!("DataFrame {} error: cannot pack row keys from RString column {}.", $caller, $col_name)
+        panic!("DataFrame {} error: cannot pack row keys from RString column {}.", $caller, $col_name)
     };
 }
 macro_rules! unknown_type {
     ($col_type:expr, $caller:expr) => {
-        throw!("DataFrame {} internal error: unknown or unhandled column type {}.", $caller, $col_type)
+        panic!("DataFrame {} internal error: unknown or unhandled column type {}.", $caller, $col_type)
     };
 }
 
@@ -205,7 +204,7 @@ impl Column {
     /// Add an empty column of a specific type to a DataFrame where n_row ==0.
     pub fn add_empty_col(df_dst: &mut DataFrame, col_name: &str, col_type: &str) {
         if df_dst.n_row != 0 {
-            throw!("DataFrame::add_empty_col error: n_row must be 0 to add an empty column.")
+            panic!("DataFrame::add_empty_col error: n_row must be 0 to add an empty column.")
         }
         match col_type {
             "i32"   => <i32   as CType>::add_empty_col(df_dst, col_name),

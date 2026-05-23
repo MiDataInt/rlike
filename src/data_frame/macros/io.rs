@@ -35,7 +35,7 @@ macro_rules! df_read {
         {
             let path_str = $path;
             let file = std::fs::File::open(path_str)
-                .unwrap_or_else(|e| throw!("could not open {}: {}", path_str, e));
+                .unwrap_or_else(|e| panic!("could not open {}: {}", path_str, e));
             if path_str.ends_with(".gz") || path_str.ends_with(".bgz") {
                 let reader = std::io::BufReader::new(flate2::read::GzDecoder::new(file));
                 $df.read(reader, $header, $sep, $capacity);
@@ -75,7 +75,7 @@ macro_rules! df_write {
         {
             let path_str = $path;
             let file = std::fs::File::create(path_str)
-                .unwrap_or_else(|e| throw!("could not create {}: {}", path_str, e));
+                .unwrap_or_else(|e| panic!("could not create {}: {}", path_str, e));
             if path_str.ends_with(".gz") {
                 let writer = std::io::BufWriter::new(file);
                 let mut encoder = flate2::write::GzEncoder::new(writer, flate2::Compression::default());

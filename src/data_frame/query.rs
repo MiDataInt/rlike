@@ -16,7 +16,6 @@ use crate::data_frame::DataFrame;
 use crate::data_frame::column::Column;
 use crate::data_frame::key::{RowKey2, RowKey4, RowKey8};
 use crate::data_frame::r#trait::DataFrameTrait;
-use crate::throw;
 
 /* -----------------------------------------------------------------------------
 row key macros
@@ -207,7 +206,7 @@ impl<'a> Query<'a> {
     /// filter statement in a query sequence.
     pub fn check_filter_status(&mut self, n_row: usize) {
         if self.is_sorted_query {
-            throw!("DataFrame error: query filter() must be called before sort().")
+            panic!("DataFrame error: query filter() must be called before sort().")
         }
         if !self.has_been_filtered { // false on first filter call of query
             if self.kept_rows.len() == n_row { // reset all kept_row bool to true without allocation if possible
@@ -224,21 +223,21 @@ impl<'a> Query<'a> {
                 self.kept_rows = vec![true; n_row];
             }
         } else {
-            throw!("DataFrame error: filter() should only be called once per query sequence.")
+            panic!("DataFrame error: filter() should only be called once per query sequence.")
         }
         self.has_been_filtered = true;
     }    
     /// Set query select columns as a list of desired output columns
     pub fn set_select_cols(&mut self, df: &DataFrame, col_names: Vec<String>) {
         if self.has_been_selected {
-            throw!("DataFrame error: select()/drop() should only be called once per query sequence.")
+            panic!("DataFrame error: select()/drop() should only be called once per query sequence.")
         }
         if !col_names.is_empty() {
             for col_name in col_names {
                 if let Some(_) = df.columns.get(&col_name) {
                     self.select_cols.push(col_name);
                 } else {
-                    throw!("DataFrame::select() error: column {col_name} not found.");
+                    panic!("DataFrame::select() error: column {col_name} not found.");
                 }
             }
             self.has_been_selected = true;
@@ -247,14 +246,14 @@ impl<'a> Query<'a> {
     /// Set query select columns as a list of columns to omit from the output.
     pub fn set_drop_cols(&mut self, df: &DataFrame, col_names: Vec<String>) {
         if self.has_been_selected {
-            throw!("DataFrame error: select()/drop() should only be called once per query sequence.")
+            panic!("DataFrame error: select()/drop() should only be called once per query sequence.")
         }
         if !col_names.is_empty() {
             for col_name in &col_names {
                 if let Some(_) = df.columns.get(col_name) {
                     // do nothing yet
                 } else {
-                    throw!("DataFrame::drop() error: column {col_name} not found.");
+                    panic!("DataFrame::drop() error: column {col_name} not found.");
                 }
             }
             self.select_cols = df.col_names.clone();
@@ -269,14 +268,14 @@ impl<'a> Query<'a> {
     /// Set query sort columns.
     pub fn set_sort_cols(&mut self, df: &DataFrame, col_names: Vec<String>) {
         if self.is_sorted_query {
-            throw!("DataFrame error: sort() should only be called once per query sequence.")
+            panic!("DataFrame error: sort() should only be called once per query sequence.")
         }
         self.is_sorted_query = true;
         if col_names.is_empty() {
             return ();
         }
         if col_names.len() > 8 {
-            throw!("DataFrame error: sort() can currently sort up to 8 columns.")
+            panic!("DataFrame error: sort() can currently sort up to 8 columns.")
         }
         self.has_been_sorted = true;
         self.sort_negates = Query::get_negation(&col_names);
@@ -290,7 +289,7 @@ impl<'a> Query<'a> {
             if let Some(_) = df.columns.get(col_name) {
                 // do nothing yet
             } else {
-                throw!("DataFrame::sort() error: column {col_name} not found.");
+                panic!("DataFrame::sort() error: column {col_name} not found.");
             }
         }
         self.sorts_match = false;
@@ -298,13 +297,13 @@ impl<'a> Query<'a> {
     /// Set grouping columns of a columnar data instance.
     pub fn set_grouping_cols(&mut self, df: &DataFrame, group_cols: Vec<String>, agg_cols: Vec<String>) {
         if self.has_been_grouped {
-            throw!("DataFrame error: group() should only be called once per query sequence.")
+            panic!("DataFrame error: group() should only be called once per query sequence.")
         }
         if group_cols.is_empty() {
-            throw!("DataFrame error: query group() requires at least one column name.")
+            panic!("DataFrame error: query group() requires at least one column name.")
         }
         if group_cols.len() > 8 {
-            throw!("DataFrame error: group() can currently group up to 8 columns.")
+            panic!("DataFrame error: group() can currently group up to 8 columns.")
         }
         self.has_been_grouped = true;
         self.group_cols = group_cols;
@@ -316,7 +315,7 @@ impl<'a> Query<'a> {
         let group_cols_clean = Query::remove_negation(&self.group_cols);
         if self.has_been_sorted {
             if !self.sort_cols.starts_with(&group_cols_clean){
-                throw!("DataFrame error: group() columns must match sort() columns in order.");
+                panic!("DataFrame error: group() columns must match sort() columns in order.");
             }
             if df.status.is_sorted && df.status.sort_cols.starts_with(&self.sort_cols) {
                 self.sorts_match = true;

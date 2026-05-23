@@ -10,7 +10,6 @@ use super::DataFrame;
 use crate::data_frame::query::Query;
 use crate::data_frame::column::Column;
 use crate::data_frame::r#trait::DataFrameTrait;
-use crate::throw;
 
 /// Enumeration of supported join types. JoinType::Pending is an initial undefined state.
 #[derive(PartialEq, Clone)]
@@ -69,24 +68,24 @@ impl Join{
     /// Perform column consistency checks
     pub fn check_config(&self) {
         if self.n_dfs < 2 {
-            throw!("DataFrame::join error: join requires at least two DataFrames.");
+            panic!("DataFrame::join error: join requires at least two DataFrames.");
         }
         if self.key_cols.len() > 8 {
-            throw!("DataFrame::join error: join only supports 1 to 8 key columns.");
+            panic!("DataFrame::join error: join only supports 1 to 8 key columns.");
         }
         if !self.sorted && self.join_type == JoinType::Outer {
-            throw!("DataFrame::join error: outer join is not supported on unsorted hash joins.");
+            panic!("DataFrame::join error: outer join is not supported on unsorted hash joins.");
         }
         let mut non_key_cols = Vec::new();
         for i in 0..self.n_dfs {
             if Self::a_lacks_b_element(&self.cols_all[i], &self.key_cols){
-                throw!("DataFrame::join error: one or more key columns missing from DataFrame {}.", i + 1);
+                panic!("DataFrame::join error: one or more key columns missing from DataFrame {}.", i + 1);
             }
             if Self::has_shared_values(&self.cols_non_key[i],  &self.key_cols){
-                throw!("DataFrame::join error: one or more non-key columns in DataFrame {} is also a key column.", i + 1);
+                panic!("DataFrame::join error: one or more non-key columns in DataFrame {} is also a key column.", i + 1);
             }
             if Self::has_shared_values(&self.cols_non_key[i], &non_key_cols){
-                throw!("DataFrame::join error: all join select columns (not key columns) must be unique to one DataFrame.");
+                panic!("DataFrame::join error: all join select columns (not key columns) must be unique to one DataFrame.");
             }
             non_key_cols.extend(self.cols_non_key[i].clone());
         }

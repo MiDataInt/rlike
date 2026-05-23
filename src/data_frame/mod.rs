@@ -80,7 +80,6 @@ use query::{QueryStatus, Query};
 use slice::DataFrameSlice;
 use index::RowIndex;
 use r#trait::DataFrameTrait;
-use crate::throw;
 
 /* -----------------------------------------------------------------------------
 DataFrame structure definition; metadata and a set of named Column instances.
@@ -208,7 +207,7 @@ impl DataFrame {
             self.col_types.remove(col_name);
             self.n_col -= 1;
         } else {
-            throw!("DataFrame::drop_col error: column {col_name} not found.");
+            panic!("DataFrame::drop_col error: column {col_name} not found.");
         }
         self
     }
@@ -216,7 +215,7 @@ impl DataFrame {
     pub fn retain_cols(&mut self, retain_col_names: Vec<String>) -> &mut Self {
         for col_name in &retain_col_names {
             if !self.col_names.contains(col_name) {
-                throw!("DataFrame::retain_cols error: column {col_name} not found.");
+                panic!("DataFrame::retain_cols error: column {col_name} not found.");
             }
         }
         for col_name in &self.col_names {
@@ -237,12 +236,12 @@ impl DataFrame {
     /// Establish pre-defined factor labels for an RFactor column.
     pub fn set_labels(&mut self, col_name: &str, labels: Vec<&str>) -> &mut Self {
         if self.col_types[col_name] != "u16" {
-            throw!("DataFrame::set_labels error: column {col_name} is not type RFactor/u16.");
+            panic!("DataFrame::set_labels error: column {col_name} is not type RFactor/u16.");
         }
         if let Some(col) = self.columns.get_mut(col_name) {
             col.set_labels(labels);
         } else {
-            throw!("DataFrame::set_labels error: column {col_name} not found.");
+            panic!("DataFrame::set_labels error: column {col_name} not found.");
         }
         self
     }
@@ -258,7 +257,7 @@ impl DataFrame {
         if let Some(col) = self.columns.get(col_name) {
             col.get_labels()
         } else {
-            throw!("DataFrame::get_labels error: column {col_name} not found.");
+            panic!("DataFrame::get_labels error: column {col_name} not found.");
         }
     }
     /// Return the factor levels for an RFactor column as a column HashMap.
@@ -266,7 +265,7 @@ impl DataFrame {
         if let Some(col) = self.columns.get(col_name) {
             col.get_levels()
         } else {
-            throw!("DataFrame::get_levels error: column {col_name} not found.");
+            panic!("DataFrame::get_levels error: column {col_name} not found.");
         }
     }
     /* -----------------------------------------------------------------------------
@@ -284,14 +283,14 @@ impl DataFrame {
         if let Some(col) = self.columns.get(col_name) {
             col
         } else {
-            throw!("DataFrame::{caller} error: column {col_name} not found.")
+            panic!("DataFrame::{caller} error: column {col_name} not found.")
         }
     }
     fn get_column_mut<'a>(&'a mut self, col_name: &str, caller: &str) -> &'a mut Column {
         if let Some(col) = self.columns.get_mut(col_name) {
             col
         } else {
-            throw!("DataFrame::{caller} error: column {col_name} not found.")
+            panic!("DataFrame::{caller} error: column {col_name} not found.")
         }
     }
     /// Return a mutable reference to the Vec<Option<T>> held in a DataFrame Column by column name.

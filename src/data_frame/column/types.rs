@@ -4,7 +4,6 @@
 use serde::{Serialize, Deserialize};
 use std::collections::HashMap;
 use super::Column;
-use crate::throw;
 
 /* -----------------------------------------------------------------------------
 Special column data types: RFactor
@@ -21,7 +20,7 @@ pub struct RFactorColumn {
 }
 macro_rules! factor_type_mismatch {
     ($caller:expr) => {
-        throw!("DataFrame::{} error: column is not of type RFactor/u16.", $caller)
+        panic!("DataFrame::{} error: column is not of type RFactor/u16.", $caller)
     };
 }
 impl Column {
@@ -89,7 +88,7 @@ impl Column {
                 ));
             },
             Column::RNumeric(_col_data) => { // f64 cannot be categorized
-                throw!("DataFrame::factorize error: column {col_name} of type RNumeric(f64) is not suitable for parsing to categorical values.")
+                panic!("DataFrame::factorize error: column {col_name} of type RNumeric(f64) is not suitable for parsing to categorical values.")
             },
             Column::RLogical(col_data) => { // bool is categorized to true/false even if both values are not present
                 col_data.iter().for_each(|opt_val| push_opt_level (
@@ -102,7 +101,7 @@ impl Column {
                 ));
             },
             Column::RFactor(_col_data) => { // expect caller to parse whether a column is already factorized
-                throw!("DataFrame::factorize error: column {col_name} is already an RFactor column.")
+                panic!("DataFrame::factorize error: column {col_name} is already an RFactor column.")
             },
             Column::RString(col_data) => { // strings can be categorized but levels are not predictable
                 col_data.iter().for_each(|opt_val| push_opt_level (

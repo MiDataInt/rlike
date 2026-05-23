@@ -3,14 +3,14 @@
 // dependencies
 use std::str::FromStr;
 use std::any::type_name;
-use super::{Column, throw, RFactorColumn};
+use super::{Column, RFactorColumn};
 
 /* -----------------------------------------------------------------------------
 error handling
 ----------------------------------------------------------------------------- */
 macro_rules! parse_failure {
     ($col_type:expr, $str:expr) => {
-        throw!("DataFrame::deserialize error: failed to parse {} from string {}.", $col_type, $str)
+        panic!("DataFrame::deserialize error: failed to parse {} from string {}.", $col_type, $str)
     };
 }
 
@@ -71,7 +71,7 @@ fn deserialize_u16(f: &mut RFactorColumn, strs: Vec<&str>) {
                     f.labels.push(str.to_string());
                     Some(new_level)
                 } else {
-                    throw!("DataFrame::deserialize error: unknown factor label: {str}.")
+                    panic!("DataFrame::deserialize error: unknown factor label: {str}.")
                 }
             }
         }
