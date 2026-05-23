@@ -18,13 +18,13 @@ impl Query<'_> {
         a_name: &str, 
         op: impl Fn(Option<A>) -> bool + Send + Sync
     ) where 
-        A: Copy + Send + Sync,
+        A: Clone + Send + Sync,
         Vec<Option<A>>: ColVec 
     {
         let a_col_data: &[Option<A>] = df_src.get_ref(a_name);
         let _ = self.kept_rows.par_iter_mut().enumerate()
             .for_each(|(i, kept)| if *kept {
-                *kept = op(a_col_data[i])
+                *kept = op(a_col_data[i].clone())
             });
     }
 
@@ -34,8 +34,8 @@ impl Query<'_> {
         a_name: &str, b_name: &str, 
         op: impl Fn(Option<A>, Option<B>) -> bool + Send + Sync
     ) where 
-        A: Copy + Send + Sync,
-        B: Copy + Send + Sync,
+        A: Clone + Send + Sync,
+        B: Clone + Send + Sync,
         Vec<Option<A>>: ColVec,
         Vec<Option<B>>: ColVec
     {
@@ -43,7 +43,7 @@ impl Query<'_> {
         let b_col_data: &[Option<B>] = df_src.get_ref(b_name);
         let _ = self.kept_rows.par_iter_mut().enumerate()
             .for_each(|(i, kept)| if *kept {
-                *kept = op(a_col_data[i], b_col_data[i])
+                *kept = op(a_col_data[i].clone(), b_col_data[i].clone())
             });
     }
 
@@ -53,9 +53,9 @@ impl Query<'_> {
         a_name: &str, b_name: &str, c_name: &str,
         op: impl Fn(Option<A>, Option<B>, Option<C>) -> bool + Send + Sync
     ) where 
-        A: Copy + Send + Sync,
-        B: Copy + Send + Sync,
-        C: Copy + Send + Sync,
+        A: Clone + Send + Sync,
+        B: Clone + Send + Sync,
+        C: Clone + Send + Sync,
         Vec<Option<A>>: ColVec,
         Vec<Option<B>>: ColVec,
         Vec<Option<C>>: ColVec
@@ -65,7 +65,7 @@ impl Query<'_> {
         let c_col_data: &[Option<C>] = df_src.get_ref(c_name);
         let _ = self.kept_rows.par_iter_mut().enumerate()
             .for_each(|(i, kept)| if *kept {
-                *kept = op(a_col_data[i], b_col_data[i], c_col_data[i])
+                *kept = op(a_col_data[i].clone(), b_col_data[i].clone(), c_col_data[i].clone())
             });
     }
     /* -----------------------------------------------------------------------------
