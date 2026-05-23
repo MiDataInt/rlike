@@ -26,6 +26,10 @@ DataFrame `read` and `write` macros for row-major IO to/from STDIN/STDOUT or tex
 /// df_read!(&mut df, "data.csv");
 /// df_read!(&mut df, file = "data.csv", header = true, sep = b',', capacity = 5000);
 /// 
+/// // Read from a byte array
+/// let bytes = b"col1,col2,col3\n1,1.0,true\n2,2.0,false\n3,3.0,true\n";
+/// df_read!(&mut df, bytes = bytes, header = true, sep = b',', capacity = 5000);
+/// 
 /// // Read from stdin
 /// df_read!(&mut df);
 /// ```
@@ -47,6 +51,15 @@ macro_rules! df_read {
     };
     ($df:expr, file = $path:expr) => {
         df_read!($df, file = $path, header = false, sep = b'\t', capacity = 10000);
+    };
+    ($df:expr, bytes = $bytes:expr, header = $header:expr, sep = $sep:expr, capacity = $capacity:expr) => {
+        {
+            let reader = std::io::Cursor::new($bytes);
+            $df.read(reader, $header, $sep, $capacity);
+        }
+    };
+    ($df:expr, bytes = $bytes:expr) => {
+        df_read!($df, bytes = $bytes, header = false, sep = b'\t', capacity = 10000);
     };
     ($df:expr, header = $header:expr, sep = $sep:expr, capacity = $capacity:expr) => {
         {
