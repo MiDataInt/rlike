@@ -88,6 +88,7 @@ impl Query<'_> {
 
         // return the pivot table
         df_grp.status.transfer_sort_group_status(&self);
+        DataFrame::touch(&mut df_grp);
         df_grp
     }
 }

@@ -112,7 +112,8 @@ impl Query<'_> {
             self.set_fss_i(); // used for aggregation and other purposes
 
             // return parsed groups, either sorted or unsorted
-            let (df_grp, df_fss, group_map) = self.parse_groups(df_src, Some(df_fss));
+            let (mut df_grp, df_fss, group_map) = self.parse_groups(df_src, Some(df_fss));
+            DataFrame::touch(&mut df_grp);
             (df_grp, df_fss, group_map)
 
         // if the rows are not changing, we can use a simple initial i_map to find groups
@@ -120,7 +121,8 @@ impl Query<'_> {
             self.set_i_map(df_src); 
 
             // return parsed groups, either sorted or unsorted; self=df_src and df_fss are the same
-            let (df_grp, df_fss, group_map) = self.parse_groups(df_src, None);
+            let (mut df_grp, df_fss, group_map) = self.parse_groups(df_src, None);
+            DataFrame::touch(&mut df_grp);
             (df_grp, df_fss, group_map)
         }
     }

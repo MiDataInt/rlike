@@ -25,6 +25,7 @@ impl DataFrame {
             }
             self.col_names.extend(other.col_names.clone()); // maintains column order
             self.n_col += other.n_col;
+            DataFrame::touch(&mut self);
             self
         }
         // cbind cannot alter the sort/group status since self columns are unchanged
@@ -61,6 +62,7 @@ impl DataFrame {
         df_dst.cbind_ref_copy_cols(self);
         df_dst.cbind_ref_copy_cols(other);
         df_dst.n_row = self.n_row.max(other.n_row);
+        DataFrame::touch(&mut df_dst);
         df_dst
     }
 

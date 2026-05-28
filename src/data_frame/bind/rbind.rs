@@ -17,6 +17,7 @@ impl DataFrame {
         self.rbind_add_rows(&other);
         self.status.reset();
         self.row_index.reset();
+        DataFrame::touch(&mut self);
         self
     }    
 
@@ -32,6 +33,7 @@ impl DataFrame {
         let mut df_dst = DataFrame::from_schema(self);
         df_dst.rbind_add_rows(self);
         df_dst.rbind_add_rows(other);
+        DataFrame::touch(&mut df_dst);
         df_dst
     }
 

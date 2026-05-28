@@ -107,7 +107,7 @@ impl Join{
     ) -> DataFrame {
 
         // use fold to perform sequential left-associative joins
-        (1..self.n_dfs).fold(DataFrame::new(), |df_l, df_r_i| {
+        let mut df_out = (1..self.n_dfs).fold(DataFrame::new(), |df_l, df_r_i| {
             let df_l_i = df_r_i - 1;
             let is_last = df_r_i == self.n_dfs - 1;
             let (left, right) = qrys.split_at_mut(df_r_i);
@@ -118,7 +118,9 @@ impl Join{
             } else { // subsequent joins use the previous join result and the next DataFrame
                 self.join_two_dfs(&df_l, dfs[df_r_i], qry_l, qry_r, df_l_i, df_r_i, is_last)
             }
-        })
+        });
+        DataFrame::touch(&mut df_out);
+        df_out
     }
     
     // join two DataFrames; called as many times as needed by execute_join()

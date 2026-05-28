@@ -80,6 +80,7 @@ impl Query<'_> {
         }
         let mut df_fss = self.filter_sort_select(df_src);
         df_fss.status.transfer_sort_group_status(&self);
+        DataFrame::touch(&mut df_fss);
         df_fss // df_fss = filtered, sorted, and selected DataFrame
     }
     /* -----------------------------------------------------------------------------

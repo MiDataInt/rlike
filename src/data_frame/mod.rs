@@ -10,14 +10,12 @@
 //! code and a greater need to understand the underlying data structures.
 //! 
 //! See the DataFrame
-//! [documentation](https://github.com/MiDataInt/mdi-pipelines-framework/tree/main/crates/mdi/src/rlike/data_frame)
-//! and
-//! [examples](https://github.com/wilsonte-umich/mdi-pipelines-framework/tree/main/crates/mdi/examples) 
+//! [documentation](https://github.com/MiDataInt/rlike/blob/main/src/data_frame/README.md)
 //! for details on supported features and syntax guides. 
 //! 
 //! # Quick Start - get a new DataFrame up and running
 //! ```rust
-//! use mdi::data_frame::prelude::*;
+//! use rlike::data_frame::prelude::*;
 //! 
 //! // fill a DataFrame as it is created
 //! let df = df_new!( 
@@ -72,6 +70,7 @@ pub mod io;
 
 // dependencies
 use std::collections::HashMap;
+use std::time::{SystemTime, UNIX_EPOCH};
 use serde::{Serialize, Deserialize};
 use rayon::prelude::*;
 use crate::types::Do;
@@ -87,6 +86,7 @@ DataFrame structure definition; metadata and a set of named Column instances.
 /// A DataFrame is a columnar data structure stored as a HashMap of named Columns.
 #[derive(Serialize, Deserialize)]
 pub struct DataFrame {
+    mod_time:      u128,
     n_row:         usize,
     n_col:         usize,
     columns:       HashMap<String, Column>,
@@ -103,7 +103,8 @@ impl DataFrame {
     ----------------------------------------------------------------------------- */
     /// Create a new, empty DataFrame, to which you subsequently add Columns.
     pub fn new() -> Self {
-        Self {
+        let mut df = Self {
+            mod_time:   0,
             n_row:      0,
             n_col:      0,
             columns:    HashMap::new(),
@@ -113,7 +114,17 @@ impl DataFrame {
             row_index:  RowIndex::new(),
             print_max_rows:      20,
             print_max_col_width: 25,
-        }
+        };
+        DataFrame::touch(&mut df);
+        df
+    }
+    /// Set the DataFrame `mod_time` to `now()` to denote that the its
+    /// schema or data has (most likely) changed.
+    fn touch(&mut self){
+        self.mod_time = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_millis(); // effectively a unique identifier for a DataFrame
     }
     /// Create a new, empty data frame with the same schema as an existing one.
     pub fn from_schema(df_src: &DataFrame) -> Self {
@@ -122,6 +133,7 @@ impl DataFrame {
             let col_type = df_src.col_types[col_name].clone();
             Column::add_empty_col(&mut df_dst, col_name, &col_type)
         });
+        DataFrame::touch(&mut df_dst);
         df_dst
     }
     /// Create a new data frame from one or more rows of an existing DataFrame,
@@ -132,6 +144,7 @@ impl DataFrame {
         self.col_names.iter().for_each(|col_name| {
             Column::copy_col_rows(self, &mut df_dst, col_name, &row_i);
         });
+        DataFrame::touch(&mut df_dst);
         df_dst
     }
     /// Reserve capacity for at least additional more rows to be inserted in a DataFrame. 
@@ -179,6 +192,7 @@ impl DataFrame {
         self.col_names.push(col_name.to_string()); // keep track of column creation order
         self.col_types.insert(col_name.to_string(), col_type);
         self.n_col += 1;
+        DataFrame::touch(self);
         self
     }
     /// Like DataFrame::add_col, but replace an existing column if it exists without error or warning.
@@ -197,6 +211,7 @@ impl DataFrame {
         } else {
             self.add_col(col_name, col_data);
         }
+        DataFrame::touch(self);
     }
     /// Remove a Column from a DataFrame based on the column name.
     pub fn drop_col(&mut self, col_name: &str) -> &mut Self {
@@ -209,6 +224,7 @@ impl DataFrame {
         } else {
             panic!("DataFrame::drop_col error: column {col_name} not found.");
         }
+        DataFrame::touch(self);
         self
     }
     /// Keep only the columns in a DataFrame that are listed in argument `retain_col_names`.
@@ -228,6 +244,7 @@ impl DataFrame {
         }
         self.n_col = retain_col_names.len();
         self.col_names = retain_col_names;
+        DataFrame::touch(self);
         self
     }
     /* -----------------------------------------------------------------------------
@@ -243,6 +260,7 @@ impl DataFrame {
         } else {
             panic!("DataFrame::set_labels error: column {col_name} not found.");
         }
+        DataFrame::touch(self);
         self
     }
     /// Transfer factor labels for an RFactor column from df_src to self.
@@ -251,6 +269,7 @@ impl DataFrame {
             col_name, 
             df_src.get_labels(col_name).iter().map(|s| s.as_str()).collect()
         );
+        DataFrame::touch(self);
     }
     /// Return the ordered factor labels for an RFactor column.
     pub fn get_labels(&self, col_name: &str) -> Vec<String> {
@@ -516,6 +535,7 @@ impl DataFrame {
         self.get_column_mut(col_name, "set").set(row_i, value, col_name);
         self.status.reset_if_changed(vec![col_name.to_string()]);
         self.row_index.reset_if_changed(vec![col_name.to_string()]);
+        DataFrame::touch(self);
     }
     /* -----------------------------------------------------------------------------
     DataFrame support for indexed row retrieval
@@ -529,5 +549,54 @@ impl DataFrame {
     /// specific key column values.
     pub fn get_indexed(&self, dk: DataFrame) -> DataFrameSlice<'_> {
         RowIndex::get_indexed(self, dk)
+    }
+}
+
+/* -----------------------------------------------------------------------------
+Additional trait implementations for DataFrames for simplified identity tracking
+that allows two DataFrames to be considered guaranteed identities, or to not
+have than guarantee even if their schema and data might be the same.
+----------------------------------------------------------------------------- */
+impl Clone for DataFrame {
+    /// Clone an existing DataFrame into a new DataFrame in a manner that preserves
+    /// the `mod_time` as well as the data, such that df_in == df_out.
+    /// 
+    /// Importantly, PartialEq will be false for two DataFrames with the same data
+    /// if their `mod_time` is different. PartialEq (`==`) is true only if one
+    /// DataFrame is a direct, unmodified, un`touch()`ed descendant of the other,
+    /// such as is created by `DataFrame::clone()` and `df_clone!()`;
+    ///
+    /// ```
+    /// let df1 = df_new!(col1 = vec![1, 2, 3].to_rl());
+    /// let df2 = df_select!(&df1);
+    /// let df3 = df_clone!(&df1); // all three DataFrames have the same schema and data
+    /// assert_eq!(df1 == df2, false);
+    /// assert_eq!(df1 == df3, true); // but only df1 and df3 pass PartialEq
+    /// ```
+    fn clone(&self) -> Self{
+        let qry = Query::new(); // equivalent to df_select!(df)
+        let mut df = qry.execute_select_query(self);
+        df.mod_time = self.mod_time; // otherwise, PartialEq would be false
+        df
+    }
+}
+impl PartialEq for DataFrame {
+    /// Report whether two DataFrames have the same `mod_time` and are thus
+    /// guaranteed to be identical.
+    /// 
+    /// Importantly, PartialEq will be false for two DataFrames with the same data
+    /// if their `mod_time` is different. PartialEq (`==`) is true only if one
+    /// DataFrame is a direct, unmodified, un`touch()`ed descendant of the other,
+    /// such as is created by `DataFrame::clone()` and `df_clone!()`;
+    ///
+    /// ```
+    /// let df1 = df_new!(col1 = vec![1, 2, 3].to_rl());
+    /// let df2 = df_select!(&df1);
+    /// let df3 = df_clone!(&df1); // all three DataFrames have the same schema and data
+    /// assert_eq!(df1 == df2, false);
+    /// assert_eq!(df1 == df3, true); // but only df1 and df3 pass PartialEq
+    /// ```
+    fn eq(&self, other: &Self) -> bool {
+        self.mod_time == other.mod_time
     }
 }

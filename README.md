@@ -38,5 +38,5 @@ and
 
 Differences aside, `rlike` adopts many of the same best practices
 for efficient column-based data manipulation as `polars`, although 
-without using the Apache Arrow format. Most notably, `rlike` encodes 
-null/NA values using None elements in Rust `Option<T>` values. 
+without using the exact Apache Arrow format. Most notably, `rlike`  
+encodes null/NA values using None elements in Rust `Option<T>` values. 

@@ -1,4 +1,4 @@
-//! RLike DataFrame re-exports to support `use mdi::data_frame::prelude::*;`
+//! RLike DataFrame re-exports to support `use rlike::data_frame::prelude::*;`
 
 /*-----------------------------------------------------------------------
 RLike data types and associated traits
@@ -21,6 +21,7 @@ macro export always happens in the crate root, so we re-export them here
 ---------------------------------------------------------------------- */
 // from new.rs
 pub use crate::df_new;
+pub use crate::df_clone;
 /*-------------------------------------------------------------------- */
 // from io.rs
 pub use crate::df_read;

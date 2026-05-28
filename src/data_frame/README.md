@@ -20,20 +20,11 @@ code and a greater need to understand the underlying data structures.
 ## Data types
 
 `rlike::DataFrame` columns must conform to one of a set of RLike data types
-[described here](https://github.com/wilsonte-umich/mdi-pipelines-framework/blob/main/crates/mdi/src/rlike/types/mod.rs),
+[described here](https://github.com/MiDataInt/rlike/blob/main/src/types/mod.rs),
 which include standard integer, numeric, boolean, factor and string types,
 as well as support for custom data types created by users that implement `Sized`.
 Throughout, column values are `Vec<Option<T>>` to allow NA/null values to 
 be encoded using Rust `None`.
-
-## Detailed examples
-
-The following is an organizational overview of DataFrame macros and methods. 
-Many **code snippets below are pseudo-code**, they are a guide to the main 
-DataFrame features, not runnable examples. See the documentation of the 
-individual macros and methods as well as the 
-[complete examples](https://github.com/wilsonte-umich/mdi-pipelines-framework/tree/main/crates/mdi/examples) 
-for details on usage and statement syntax.
 
 ## Loading DataFrame for use
 
@@ -41,7 +32,7 @@ The create includes a prelude module to allow all DataFrame features and macros
 to be enabled in your script with command:
 
 ```rust
-use mdi::data_frame::prelude::*;
+use rlike::data_frame::prelude::*;
 ```
 
 ## Creating a DataFrame anew
@@ -57,6 +48,10 @@ with no columns or with empty columns matching an existing DataFrame's schema.
 
 - `let mut df = DataFrame::new();` = create an empty DataFrame 
 - `let mut df = DataFrame::from_schema(&df);` = create an empty DataFrame matching another DataFrame's columns
+
+To clone another DataFrame outright, such that `df_in == df_out`:
+- `let mut df_out = DataFrame::clone(&df_in);`
+- `let mut df_out = df_clone!(&df_in);`
 
 ## Filling a DataFrame from a file or stream
 
@@ -204,7 +199,7 @@ not have synonyms.
 The  `select()` and `drop()` actions trigger SQL-like Select query execution without data grouping.
 
 ```rust
-// copy all rows and all columns
+// copy all rows and all columns, modifying mod_time such that df_qry != df even though data are the same
 let df_qry = df_query!(&df, select());
 let df_qry = df_select!(&df);
 

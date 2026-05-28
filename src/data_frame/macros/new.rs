@@ -1,4 +1,5 @@
-//! The 'new' macro helps to create (and fill) a new DataFrame.
+//! The 'new' macro helps to create (and fill) a new DataFrame,
+//! and the 'clone' macros makes an unmodified copy of a DataFrame.
 
 /* -----------------------------------------------------------------------------
 DataFrame `new` constructor macro
@@ -92,5 +93,31 @@ macro_rules! df_new {
     // empty DataFrame creation (no rows, no columns)
     () => {
         DataFrame::new()
+    };
+}
+
+/* -----------------------------------------------------------------------------
+DataFrame `clone` constructor macro - a simple pass to df.clone() 
+implemented for consistency with other macros
+----------------------------------------------------------------------------- */
+/// Clone an existing DataFrame into a new DataFrame in a manner that preserves
+/// the `mod_time` as well as the data, such that df_in == df_out.
+/// 
+/// Importantly, PartialEq will be false for two DataFrames with the same data
+/// if their `mod_time` is different. PartialEq (`==`) is true only if one
+/// DataFrame is a direct, unmodified, un`touch()`ed descendant of the other,
+/// such as is created by `DataFrame::clone()` and `df_clone!()`;
+///
+/// ```
+/// let df1 = df_new!(col1 = vec![1, 2, 3].to_rl());
+/// let df2 = df_select!(&df1);
+/// let df3 = df_clone!(&df1); // all three DataFrames have the same schema and data
+/// assert_eq!(df1 == df2, false);
+/// assert_eq!(df1 == df3, true); // but only df1 and df3 pass PartialEq
+/// ```
+#[macro_export]
+macro_rules! df_clone {
+    ($df:expr) => {
+        df.clone()
     };
 }

@@ -34,14 +34,16 @@ impl Query<'_> {
             let df_do =  do_df_group(0, group_map[0]);
 
             // iterate over the rest of the group_map to add rows to df_do
-            group_map.iter().enumerate().skip(1).fold(df_do, |df_do, (grp_i, i_maps)| {
+            let mut df_do = group_map.iter().enumerate().skip(1).fold(df_do, |df_do, (grp_i, i_maps)| {
                 df_do.rbind( do_df_group(grp_i, i_maps) )
-            })
+            });
 
             // we do not do anything to the output DataFrame status
             // we cannot assert anything about its columns and rows, it could be anything at all
             // the caller is responsible for describing the output DataFrame via its 
             // status fields if needed after the query
+            DataFrame::touch(&mut df_do);
+            df_do
         };
 
         // process either df_fss or df_src depending on whether rows changed prior to grouping
