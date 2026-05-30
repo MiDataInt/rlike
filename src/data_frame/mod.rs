@@ -70,7 +70,7 @@ pub mod io;
 
 // dependencies
 use std::collections::HashMap;
-use std::time::{SystemTime, UNIX_EPOCH};
+use web_time::{SystemTime, UNIX_EPOCH};
 use serde::{Serialize, Deserialize};
 use rayon::prelude::*;
 use crate::types::Do;
